@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+
+  www:
+    build:
+      context: "./bin/${PHPVERSION}"
+
+    restart: always
+    
+    volumes:
+      - "${DOCUMENT_ROOT}:/var/www/html"
+
+    ports:
+      - "${HOST_MACHINE_UNSECURE_HOST_PORT}:80"
+
+    depends_on:
+      - db
+
+  db:
+    build:
+      context: "./bin/${DATABASE}"
+    
+    restart: always
+      
+    ports:
+      - "127.0.0.1:${HOST_MACHINE_MYSQL_PORT}:3306"
+    
+    volumes:
+      - ${MYSQL_INITDB_DIR}:/docker-entrypoint-initdb.d
+      - ${MYSQL_DATA_VOLUME}:/var/lib/mysql
+      - ${MYSQL_LOG_DIR}:/var/log/mysql
+
+    environment:
+      # MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+
+    restart: always
+
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+
+    ports:
+      - "8081:80"
+
+
+volumes:
+  ${MYSQL_DATA_VOLUME}:
